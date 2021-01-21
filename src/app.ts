@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 
 import routes from './routes';
@@ -18,7 +19,8 @@ class App {
   }
 
   private middlewares(): void {
-    this.express.use(express.json());
+    this.express.use(bodyParser.json());
+    this.express.use(bodyParser.urlencoded({ extended: false }));
     this.express.use(cors());
   }
 
