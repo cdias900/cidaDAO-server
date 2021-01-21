@@ -13,8 +13,9 @@ const WishSchema = createSchema({
   longitude: Type.number({ required: true }),
   image: Type.string({ required: true }),
   description: Type.string(),
+  likes: Type.array().of(Type.string()),
 });
 
 export default typedModel('Wish', WishSchema);
-export type ChatDoc = ExtractDoc<typeof WishSchema>;
-export type ChatProps = ExtractProps<typeof WishSchema>;
+export type WishDoc = ExtractDoc<typeof WishSchema>;
+export type WishProps = ExtractProps<typeof WishSchema>;

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
+import { errors } from 'celebrate';
 
 import routes from './routes';
 
@@ -38,6 +39,7 @@ class App {
 
   private routes(): void {
     this.express.use('/api', routes);
+    this.express.use(errors());
   }
 }
 

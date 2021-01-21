@@ -1,20 +1,25 @@
 import express from 'express';
 import multer from 'multer';
 
-import UserController from './controllers/UserController';
-import SessionController from './controllers/SessionController';
-import WishController from './controllers/WishController';
+import * as Controllers from './controllers';
+import * as Validation from './validation';
 
 import multerConfig from './config/multer';
 
 const routes = express.Router();
 
-routes.get('/users', UserController.index);
-routes.post('/user', UserController.create);
+routes.get('/users', Controllers.User.index);
+routes.post('/user', Controllers.User.create);
 
-routes.post('/wish', multer(multerConfig).single('image'), WishController.create);
+routes.get('/wishes', Controllers.Wish.index);
+routes.post(
+  '/wish',
+  multer(multerConfig).single('image'),
+  Validation.Wish.create,
+  Controllers.Wish.create
+);
 
-routes.post('/login', SessionController.create);
-routes.post('/logout', SessionController.delete);
+routes.post('/login', Controllers.Session.create);
+routes.post('/logout', Controllers.Session.delete);
 
 export default routes;

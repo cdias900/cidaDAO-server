@@ -3,6 +3,15 @@ import { Storage, Bucket } from '@google-cloud/storage';
 import crypto from 'crypto';
 
 import applicationCredentials from '../config/applicationCredentials';
+import Wish from '../models/Wish';
+
+interface WishData {
+  user: string;
+  title: string;
+  latitude: number;
+  longitude: number;
+  description?: string;
+}
 
 class WishController {
 
@@ -22,9 +31,14 @@ class WishController {
     this.bucket = this.storage.bucket(process.env.BUCKET_URL || '');
   }
 
+  public async index(req: Request, res: Response): Promise<Response> {
+    const wishes = await Wish.find();
+    return res.json(wishes);
+  }
+
   public create = async (req: Request, res: Response): Promise<Response | void> => {
     if(!req.file) return res.status(400).json({ error: 'Missing file!' });
-    // const { user, title, latitude, longitude, image, description } = req.body;
+    const { user, title, latitude, longitude, description }: WishData = req.body;
     const { originalname, mimetype, buffer } = req.file;
     const blob = this.bucket.file(`${crypto.randomBytes(16).toString('hex')}-${originalname}`);
     const blobStream = blob.createWriteStream({
@@ -37,12 +51,17 @@ class WishController {
         error: `error: ${err}`
       });
     })
-    blobStream.on('finish', () => {
-      const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${this.bucket.name}/o/${encodeURI(blob.name)}?alt=media`;
-      return res.status(200).json({
-        fileName: originalname,
-        fileLocation: publicUrl
+    blobStream.on('finish', async () => {
+      const image = `https://firebasestorage.googleapis.com/v0/b/${this.bucket.name}/o/${encodeURI(blob.name)}?alt=media`;
+      const wish = await Wish.create({
+        user,
+        title,
+        latitude,
+        longitude,
+        image,
+        description,
       })
+      return res.status(201).json({ wishId: wish._id });
     })
     blobStream.end(buffer);
   }
