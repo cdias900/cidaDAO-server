@@ -4,6 +4,7 @@ import crypto from 'crypto';
 
 import applicationCredentials from '../config/applicationCredentials';
 import Wish from '../models/Wish';
+import { UserProps } from '../models/User';
 
 interface WishData {
   user: string;
@@ -37,8 +38,10 @@ class WishController {
   }
 
   public create = async (req: Request, res: Response): Promise<Response | void> => {
-    if(!req.file) return res.status(400).json({ error: 'Missing file!' });
-    const { user, title, latitude, longitude, description }: WishData = req.body;
+    if(!req.file) return res.status(400).send();
+    if(!req.session) return res.status(401).send();
+    const user = (req.session.user as UserProps)._id;
+    const { title, latitude, longitude, description }: WishData = req.body;
     const { originalname, mimetype, buffer } = req.file;
     const blob = this.bucket.file(`${crypto.randomBytes(16).toString('hex')}-${originalname}`);
     const blobStream = blob.createWriteStream({

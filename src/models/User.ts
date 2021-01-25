@@ -16,6 +16,9 @@ export const UserSchema = createSchema({
     hash: Type.string({ required: true }),
     salt: Type.string({ required: true }),
   }),
+  bio: Type.string(),
+  picture: Type.string(),
+
 });
 
 export default typedModel('User', UserSchema);

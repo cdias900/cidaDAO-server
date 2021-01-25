@@ -41,6 +41,18 @@ class SessionManager {
       .then(() => true)
       .catch(() => false);
   }
+
+  /**
+   * Returns the session if it exists
+   * @param token Session's token
+   * @returns The session document
+   */
+  public async getSession(token: string): Promise<SessionProps | null> {
+    return Session.findById(token).populate({
+      path: 'user',
+      select: '-password -__v',
+    });
+  }
 }
 
 export default new SessionManager();
