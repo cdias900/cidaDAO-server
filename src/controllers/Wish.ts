@@ -44,12 +44,13 @@ class WishController {
     const user = (req.session.user as UserProps)._id;
     const { title, type, latitude, longitude, description }: WishData = req.body;
     const images: string[] = [];
-    return Promise.all(req.files.map(async (file) => {
+    return Promise.all((req.files as unknown as [{ filename: string }]).map(async (file) => {
       const res = await this.bucket.upload(path.resolve(__dirname, '..', '..', 'tmp', file.filename));
       images.push(`https://firebasestorage.googleapis.com/v0/b/${this.bucket.name}/o/${encodeURI(res[0].metadata.name)}?alt=media`);
     }))
       .then(async () => {
-        req.files.forEach((file) => fs.unlinkSync(path.resolve(__dirname, '..', '..', 'tmp', file.filename)));
+        (req.files as unknown as [{ filename: string }])
+          .forEach((file) => fs.unlinkSync(path.resolve(__dirname, '..', '..', 'tmp', file.filename)));
         const wish = await Wish.create({
           user,
           title,
