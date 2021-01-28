@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Storage, Bucket } from '@google-cloud/storage';
-import crypto from 'crypto';
+import path from 'path';
+import fs from 'fs';
 
 import applicationCredentials from '../config/applicationCredentials';
 import Wish from '../models/Wish';
@@ -9,6 +10,7 @@ import { UserProps } from '../models/User';
 interface WishData {
   user: string;
   title: string;
+  type: string;
   latitude: number;
   longitude: number;
   description?: string;
@@ -38,35 +40,28 @@ class WishController {
   }
 
   public create = async (req: Request, res: Response): Promise<Response | void> => {
-    if(!req.file) return res.status(400).send();
     if(!req.session) return res.status(401).send();
     const user = (req.session.user as UserProps)._id;
-    const { title, latitude, longitude, description }: WishData = req.body;
-    const { originalname, mimetype, buffer } = req.file;
-    const blob = this.bucket.file(`${crypto.randomBytes(16).toString('hex')}-${originalname}`);
-    const blobStream = blob.createWriteStream({
-      metadata: {
-        contentType: mimetype
-      }
-    })
-    blobStream.on('error', (err) => {
-      return res.status(400).json({
-        error: `error: ${err}`
-      });
-    })
-    blobStream.on('finish', async () => {
-      const image = `https://firebasestorage.googleapis.com/v0/b/${this.bucket.name}/o/${encodeURI(blob.name)}?alt=media`;
-      const wish = await Wish.create({
-        user,
-        title,
-        latitude,
-        longitude,
-        image,
-        description,
+    const { title, type, latitude, longitude, description }: WishData = req.body;
+    const images: string[] = [];
+    return Promise.all(req.files.map(async (file) => {
+      const res = await this.bucket.upload(path.resolve(__dirname, '..', '..', 'tmp', file.filename));
+      images.push(`https://firebasestorage.googleapis.com/v0/b/${this.bucket.name}/o/${encodeURI(res[0].metadata.name)}?alt=media`);
+    }))
+      .then(async () => {
+        req.files.forEach((file) => fs.unlinkSync(path.resolve(__dirname, '..', '..', 'tmp', file.filename)));
+        const wish = await Wish.create({
+          user,
+          title,
+          type,
+          latitude,
+          longitude,
+          images,
+          description,
+        })
+        return res.status(201).json({ wishId: wish._id });
       })
-      return res.status(201).json({ wishId: wish._id });
-    })
-    blobStream.end(buffer);
+      .catch(err => res.status(400).json({ error: `error: ${err}` }));
   }
 }
 

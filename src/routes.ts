@@ -23,10 +23,10 @@ routes.put(
 );
 routes.get('/user/:id', Validation.Session.validateSession, Controllers.User.find);
 
-routes.get('/wishes', Controllers.Wish.index);
+routes.get('/wishes', Validation.Session.validateSession, Controllers.Wish.index);
 routes.post(
   '/wish',
-  multer(multerConfig).single('image'),
+  multer(multerConfig).array('image', 3),
   Validation.Session.validateSession,
   Validation.Wish.create,
   Controllers.Wish.create

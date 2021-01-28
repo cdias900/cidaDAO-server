@@ -9,9 +9,10 @@ import {
 const WishSchema = createSchema({
   user: Type.string({ required: true }),
   title: Type.string({ required: true }),
+  type: Type.string({ required: true }),
   latitude: Type.number({ required: true }),
   longitude: Type.number({ required: true }),
-  image: Type.string({ required: true }),
+  images: Type.array().of(Type.string()),
   description: Type.string(),
   likes: Type.array().of(Type.string()),
 });
