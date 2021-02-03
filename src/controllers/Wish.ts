@@ -64,6 +64,26 @@ class WishController {
       })
       .catch(err => res.status(400).json({ error: `error: ${err}` }));
   }
+
+  public async find(req: Request, res: Response): Promise<Response> {
+    const { id } = req.params;
+    const wish = await Wish.findById(id);
+    if(!wish) return res.status(404).send();
+    return res.status(200).json(wish);
+  }
+
+  public async like(req: Request, res: Response): Promise<Response> {
+    if(!req.session) return res.status(401).send();
+    const { id } = req.params;
+    const user = (req.session.user as UserProps)._id;
+    const wish = await Wish.findById(id);
+    if(!wish) return res.status(404).send();
+    wish.likes = wish.likes.includes(user.toHexString())
+      ? wish.likes.filter(l => l !== user.toHexString())
+      : [...wish.likes, user.toHexString()];
+    await wish.save();
+    return res.status(200).send();
+  }
 }
 
 export default new WishController();

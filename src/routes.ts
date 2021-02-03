@@ -24,6 +24,7 @@ routes.put(
 routes.get('/user/:id', Validation.Session.validateSession, Controllers.User.find);
 
 routes.get('/wishes', Validation.Session.validateSession, Controllers.Wish.index);
+routes.get('/wish/:id', Validation.Session.validateSession, Controllers.Wish.find);
 routes.post(
   '/wish',
   multer(multerConfig).array('image', 3),
@@ -31,6 +32,7 @@ routes.post(
   Validation.Wish.create,
   Controllers.Wish.create
 );
+routes.post('/like/:id', Validation.Session.validateSession, Controllers.Wish.like);
 
 routes.post('/login', Validation.Session.authHeader, Controllers.Session.create);
 routes.post('/logout', Validation.Session.authHeader, Controllers.Session.delete);

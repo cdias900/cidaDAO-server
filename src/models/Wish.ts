@@ -14,7 +14,7 @@ const WishSchema = createSchema({
   longitude: Type.number({ required: true }),
   images: Type.array().of(Type.string()),
   description: Type.string(),
-  likes: Type.array().of(Type.string()),
+  likes: Type.array({ required: true }).of(Type.string()),
 });
 
 export default typedModel('Wish', WishSchema);
